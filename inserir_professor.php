@@ -20,6 +20,27 @@ function inserirProfessor($nome, $formacao, $telefone, $email, $aluno_id)
         die("Erro ao inserir professor: " . $e->getMessage());
     }
 }
+
+if ($_POST) {
+    $nome = $_POST['nome'];
+    $formacao = $_POST['formacao'];
+    $telefone = $_POST['telefone'];
+    $email = $_POST['email'];
+    $aluno_id = $_POST['aluno_id'];
+
+    // Verificar se o aluno_id existe na tabela alunos
+    $consulta_aluno = $pdo->prepare("SELECT id FROM alunos WHERE id = :aluno_id");
+    $consulta_aluno->bindParam(":aluno_id", $aluno_id);
+    $consulta_aluno->execute();
+
+    if ($consulta_aluno->rowCount() > 0) {
+        // Aluno_id válido, então podemos inserir o professor
+        inserirProfessor($nome, $formacao, $telefone, $email, $aluno_id);
+    } else {
+        // Aluno_id inválido
+        echo "Erro: Aluno não encontrado.";
+    }
+}
 ?>
 
 <!DOCTYPE html>

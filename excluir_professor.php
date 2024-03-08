@@ -1,34 +1,36 @@
 <?php
-  require_once("config.php");
+require_once("config.php");
 
-  function excluirProfessor($id){
+function excluirProfessor($id)
+{
     global $pdo;
-    $sql = "DELETE FROM professor WHERE id = :id";
+    $sql = "DELETE FROM professores WHERE id = :id";
     $stm = $pdo->prepare($sql);
     $stm->bindParam(":id", $id);
     $stm->execute();
     header("Location: index.php?excluir=ok");
     exit();
-  }
+}
 
-  function consultarProfessorPorId($id){
+function consultarProfessorPorId($id)
+{
     global $pdo;
-    $sql = "SELECT * FROM professor WHERE id = :id";
+    $sql = "SELECT * FROM professores WHERE id = :id";
     $stm = $pdo->prepare($sql);
     $stm->bindParam(":id", $id);
     $stm->execute();
     return $stm->fetch(PDO::FETCH_ASSOC);
-  }
+}
 
-  if($_POST){
-    if(isset($_POST['id'])){
-      excluirProfessor($_POST['id']);
+if ($_POST) {
+    if (isset($_POST['id'])) {
+        excluirProfessor($_POST['id']);
     }
-  } elseif (isset($_GET['id'])){
+} elseif (isset($_GET['id'])) {
     $professor = consultarProfessorPorId($_GET['id']);
-  } else {
+} else {
     header("Location: index.php");
-  }
+}
 ?>
 
 <!DOCTYPE html>
@@ -64,11 +66,11 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-6">
-          <label for="aluno" class="form-label">Informe o aluno:</label>
-          <input disabled value="<?=$professor['aluno']?>" type="text" id="aluno" name="aluno" class="form-control" required/>
-        </div>
-      </div>
+    <div class="col-6">
+        <label for="aluno_id" class="form-label">Informe o aluno:</label>
+        <input disabled value="<?= isset($professor['aluno_id']) ? $professor['aluno_id'] : '' ?>" type="text" id="aluno_id" name="aluno_id" class="form-control" required/>
+    </div>
+</div>
       <div class="row">
         <div class="col">
           <button class="btn btn-danger" type="submit">Excluir Dados</button>

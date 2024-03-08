@@ -1,34 +1,42 @@
 <?php
-    require_once("config.php");
+require_once("config.php");
 
-    function consultarProfessorPorId($id){
-        global $pdo;
-        $sql = "SELECT * FROM professores WHERE id = :id";
-        $stm = $pdo->prepare($sql);
-        $stm->bindParam(":id", $id);
-        $result = $stm->execute();
+function consultarProfessorPorId($id)
+{
+    global $pdo;
+    $sql = "SELECT * FROM professores WHERE id = :id";
+    $stm = $pdo->prepare($sql);
+    $stm->bindParam(":id", $id);
+    $result = $stm->execute();
 
-        // Verifica se a consulta foi bem-sucedida
-        if ($result === false) {
-            die(print_r($stm->errorInfo(), true)); // Imprime informações sobre o erro
-        }
-
-        return $stm->fetch(PDO::FETCH_ASSOC);
+    // Verifica se a consulta foi bem-sucedida
+    if ($result === false) {
+        die(print_r($stm->errorInfo(), true)); // Imprime informações sobre o erro
     }
 
-    function alterarProfessor($id, $nome, $formacao, $telefone, $email, $aluno){
-        global $pdo;
-        $sql = "
-            UPDATE professores SET nome = :nome, formacao = :formacao, telefone = :telefone, email = :email, aluno_id = :aluno
-            WHERE id = :id
-        ";
+    return $stm->fetch(PDO::FETCH_ASSOC);
+}
+
+function alterarProfessor($id, $nome, $formacao, $telefone, $email, $aluno_id)
+{
+    global $pdo;
+
+    // Verificar se o aluno_id existe na tabela alunos
+    $consulta_aluno = $pdo->prepare("SELECT id FROM alunos WHERE id = :aluno_id");
+    $consulta_aluno->bindParam(":aluno_id", $aluno_id);
+    $consulta_aluno->execute();
+
+    if ($consulta_aluno->rowCount() > 0) {
+        // Aluno_id válido, então podemos realizar a atualização
+        $sql = "UPDATE professores SET nome = :nome, formacao = :formacao, telefone = :telefone, email = :email, aluno_id = :aluno_id WHERE id = :id";
         $stm = $pdo->prepare($sql);
         $stm->bindParam(":nome", $nome);
         $stm->bindParam(":formacao", $formacao);
         $stm->bindParam(":telefone", $telefone);
         $stm->bindParam(":email", $email);
-        $stm->bindParam(":aluno", $aluno);
+        $stm->bindParam(":aluno_id", $aluno_id);
         $stm->bindParam(":id", $id);
+        
         $result = $stm->execute();
 
         // Verifica se a atualização foi bem-sucedida
@@ -38,22 +46,26 @@
 
         header("Location: index.php?alterar=ok");
         exit();
-    }
-
-    if ($_POST) {
-        if (isset($_POST['nome']) && isset($_POST['formacao']) && isset($_POST['telefone']) && isset($_POST['email']) && isset($_POST['aluno'])) {
-            alterarProfessor($_POST['id'], $_POST['nome'], $_POST['formacao'], $_POST['telefone'], $_POST['email'], $_POST['aluno']);
-        }
-    } elseif (isset($_GET['id'])) {
-        $professor = consultarProfessorPorId($_GET['id']);
-
-        // Verifica se a consulta retornou um resultado
-        if ($professor === false) {
-            die("Erro ao recuperar dados do professor.");
-        }
     } else {
-        header("Location: index.php");
+        // Aluno_id inválido
+        echo "Erro: Aluno não encontrado.";
     }
+}
+
+if ($_POST) {
+    if (isset($_POST['nome']) && isset($_POST['formacao']) && isset($_POST['telefone']) && isset($_POST['email']) && isset($_POST['aluno_id'])) {
+        alterarProfessor($_POST['id'], $_POST['nome'], $_POST['formacao'], $_POST['telefone'], $_POST['email'], $_POST['aluno_id']);
+    }
+} elseif (isset($_GET['id'])) {
+    $professor = consultarProfessorPorId($_GET['id']);
+
+    // Verifica se a consulta retornou um resultado
+    if ($professor === false) {
+        die("Erro ao recuperar dados do professor.");
+    }
+} else {
+    header("Location: index.php");
+}
 ?>
 
 <!DOCTYPE html>
@@ -87,12 +99,12 @@
           <label for="email" class="form-label">Informe o email:</label>
           <input value="<?=$professor['email']?>" type="email" id="email" name="email" class="form-control" required/>
         </div>
-      </div>
       <div class="row">
-        <div class="col-6">
-          <label for="aluno" class="form-label">Informe o aluno:</label>
-          <input value="<?=$professor['aluno']?>" type="text" id="aluno" name="aluno" class="form-control" required/>
-        </div>
+    <div class="col-6">
+        <label for="aluno_id" class="form-label">Informe o aluno:</label>
+        <input value="<?=$professor['aluno_id']?>" type="text" id="aluno_id" name="aluno_id" class="form-control" required/>
+    </div>
+</div>
       </div>
       <div class="row">
         <div class="col">
